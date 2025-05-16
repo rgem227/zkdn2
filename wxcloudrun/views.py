@@ -64,3 +64,26 @@ def get_count():
     """
     counter = Counters.query.filter(Counters.id == 1).first()
     return make_succ_response(0) if counter is None else make_succ_response(counter.count)
+
+@app.route('/login', methods=['POST'])
+def login():
+    # 替换为你的小程序 AppID 和 AppSecret
+    APPID = 'wx5b6537f52133de0f'
+    SECRET = 'a40c0eaacf4e4b9d784ca9e9e2c66b11'
+    # 获取前端发送的 code
+    code = request.json.get('code')
+    if not code:
+        return {'error': 'Missing code'}, 400
+
+    # 向微信服务器发送请求，换取 openid 和 session_key
+    url = f'https://api.weixin.qq.com/sns/jscode2session?appid={APPID}&secret={SECRET}&js_code={code}&grant_type=authorization_code'
+    response = requests.get(url)
+    data = response.json()
+
+    if 'openid' in data:
+        # 这里可以根据业务需求生成自定义的登录态信息（如 token）
+        # 为了简单起见，这里直接返回 openid
+        return {'openid': data['openid']}
+    else:
+        return {'error': data.get('errmsg', 'Unknown error')}, 500
+
